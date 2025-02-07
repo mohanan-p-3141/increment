@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
@@ -65,3 +66,26 @@ class DatabaseHelper {
     );
   }
 }
+
+class UserNotifier extends StateNotifier<int> {
+  final DatabaseHelper _dbHelper = DatabaseHelper();
+  final String username;
+
+  UserNotifier(this.username) : super(0) {
+    _loadValue();
+  }
+
+  Future<void> _loadValue() async {
+    final user = await _dbHelper.getUser(username);
+    state = user?['value'] ?? 0;
+  }
+
+  Future<void> increment() async {
+    state++;
+    await _dbHelper.updateUserValue(username, state);
+  }
+}
+
+final userProvider = StateNotifierProvider.family<UserNotifier, int, String>((ref, username) {
+  return UserNotifier(username);
+});
